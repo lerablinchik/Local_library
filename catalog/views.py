@@ -14,6 +14,8 @@ def index(request):
     num_instances = BookInstance.objects.all().count()
     num_instances_available = BookInstance.objects.filter(status__exact='a').count()
     num_authors = Author.objects.count()
+    num_genres = Genre.objects.count()
+    num_books_with_word = Book.objects.filter(title__icontains='the').count()
 
     num_visits = request.session.get('num_visits', 0)
     request.session['num_visits'] = num_visits + 1
@@ -26,6 +28,8 @@ def index(request):
             'num_instances': num_instances,
             'num_instances_available': num_instances_available,
             'num_authors': num_authors,
+            'num_genres': num_genres,
+            'num_books_with_word': num_books_with_word,
             'num_visits': num_visits,
         },
     )
@@ -96,3 +100,20 @@ class AuthorUpdate(UpdateView):
 class AuthorDelete(DeleteView):
     model = Author
     success_url = reverse_lazy('authors')
+
+class BookCreate(PermissionRequiredMixin, CreateView):
+    model = Book
+    fields = ['title', 'author', 'summary', 'isbn', 'genre', 'language']
+    permission_required = 'catalog.can_mark_returned'
+
+
+class BookUpdate(PermissionRequiredMixin, UpdateView):
+    model = Book
+    fields = ['title', 'author', 'summary', 'isbn', 'genre', 'language']
+    permission_required = 'catalog.can_mark_returned'
+
+
+class BookDelete(PermissionRequiredMixin, DeleteView):
+    model = Book
+    success_url = reverse_lazy('books')
+    permission_required = 'catalog.can_mark_returned'
